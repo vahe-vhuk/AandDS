@@ -30,22 +30,39 @@ void check(const vector2d<T>& a, const vector2d<T>& b)
 
 
 template <typename T>
-void add_matrix(const vector2d<T>& a,const vector2d<T>& b, vector2d<T>& c)
+vector2d<T> add_matrix(const vector2d<T>& a,const vector2d<T>& b)
 {
     size_t row = a.size();
     size_t col = a[0].size();
+
+    vector2d<T> res(row, std::vector<T>(col));
     for (size_t i = 0; i < row; ++i) {
         for (size_t j = 0; j < col; ++j) {
-            c[i][j] = a[i][j] + b[i][j];
+            res[i][j] = a[i][j] + b[i][j];
         }
     }
+    return res;
 }
 
 
+template <typename T>
+vector2d<T> sub_matrix(const vector2d<T>& a,const vector2d<T>& b)
+{
+    size_t row = a.size();
+    size_t col = a[0].size();
+   
+    vector2d<T> res(row, std::vector<T>(col));
+    for (size_t i = 0; i < row; ++i) {
+        for (size_t j = 0; j < col; ++j) {
+            res[i][j] = a[i][j] - b[i][j];
+        }
+    }
+    return res;
+}
 
 
 template <typename T>
-vector2d<T> strassens_mul(vector2d<T>& a, vector2d<T>& b)
+vector2d<T> strassens_mul(const vector2d<T>& a, const vector2d<T>& b)
 {
     size_t size = a.size();
     size_t slice = size / 2;
@@ -81,24 +98,20 @@ vector2d<T> strassens_mul(vector2d<T>& a, vector2d<T>& b)
         }
     }
 
+    vector2d<T> p_1 = strassens_mul(a_00, sub_matrix(b_01, b_11));
+    vector2d<T> p_2 = strassens_mul(add_matrix(a_00, a_01), b_11);
+    vector2d<T> p_3 = strassens_mul(add_matrix(a_10, a_11), b_00);
+    vector2d<T> p_4 = strassens_mul(a_11, sub_matrix(b_10, b_00));
+    vector2d<T> p_5 = strassens_mul(add_matrix(a_00, a_11), add_matrix(b_00, b_11));
+    vector2d<T> p_6 = strassens_mul(sub_matrix(a_01, a_11), add_matrix(b_10, b_11));
+    vector2d<T> p_7 = strassens_mul(sub_matrix(a_00, a_10), add_matrix(b_00, b_01));
 
-    vector2d<T> result_00(slice, row);
-    vector2d<T> result_01(slice, row);
-    vector2d<T> result_10(slice, row);
-    vector2d<T> result_11(slice, row);
 
-    add_matrix(strassens_mul(a_00, b_00),
-               strassens_mul(a_01, b_10),
-               result_00);
-    add_matrix(strassens_mul(a_00, b_01),
-               strassens_mul(a_01, b_11),
-               result_01);
-    add_matrix(strassens_mul(a_10, b_00),
-               strassens_mul(a_11, b_10),
-               result_10);
-    add_matrix(strassens_mul(a_10, b_01),
-               strassens_mul(a_11, b_11),
-               result_11);
+    vector2d<T> result_00 = sub_matrix(add_matrix(add_matrix(p_5, p_4), p_6), p_2);
+    vector2d<T> result_01 = add_matrix(p_1, p_2);
+    vector2d<T> result_10 = add_matrix(p_3, p_4);
+    vector2d<T> result_11 = sub_matrix(sub_matrix(add_matrix(p_1, p_5), p_3), p_7);
+
 
     for (size_t i = 0; i < slice; ++i) {
         for (size_t j = 0; j < slice; ++j) {
@@ -111,8 +124,6 @@ vector2d<T> strassens_mul(vector2d<T>& a, vector2d<T>& b)
 
     return result;
 }
-
-
 
 
 template <typename T>
